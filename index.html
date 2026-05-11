@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Garden Tracker</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Lucide Icons as inline SVG components
+        const Leaf = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+            </svg>
+        );
+
+        const Plus = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        );
+
+        const Calendar = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+        );
+
+        const Camera = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+        );
+
+        const Upload = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+        );
+
+        const Droplet = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            </svg>
+        );
+
+        const Scissors = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <circle cx="6" cy="6" r="3"></circle>
+                <circle cx="6" cy="18" r="3"></circle>
+                <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+                <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+                <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+            </svg>
+        );
+
+        const Check = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        );
+
+        const X = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+
+        const ChevronLeft = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        );
+
+        const ChevronRight = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        );
+
+        const ExternalLink = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+        );
+
+        const Trash2 = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+        );
+
+        const Info = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+        );
+
+        const AlertCircle = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        );
+
+        const Search = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        );
+
+        const MapPin = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+        );
+
+        const Thermometer = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"></path>
+            </svg>
+        );
+
+        const Edit2 = ({ size = 24, ...props }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+        );
+
+        // Example plants — used to seed the garden on first load
+        // (Once you add or delete plants, your changes are saved in your browser
+        //  and these seeds will not overwrite them.)
+        const SEED_PLANTS = [
+            {
+                id: 1001,
+                commonName: 'Roma Tomato',
+                taxonomicName: 'Solanum lycopersicum',
+                image: null,
+                wateringFrequency: 8,
+                lastWatered: { month: 5, day: 8 },
+                safeForPets: false,
+                nativeCalifornia: false,
+                infoUrl: 'https://en.wikipedia.org/wiki/Roma_tomato',
+                fertilizeMonths: [3, 5, 7],
+                fertilizerType: '10-10-10 balanced',
+                pruneMonths: [4, 6],
+                nutritionalValue: 'Rich in lycopene, vitamin C, potassium, and folate. About 18 calories per medium tomato.',
+                notes: 'Indeterminate variety. Stake or cage for support. Pick when fully red for best flavor.',
+                safetyNotes: 'Leaves and stems contain solanine and are toxic if eaten — only the ripe fruit is safe.',
+                location: 'Raised bed, back yard'
+            },
+            {
+                id: 1002,
+                commonName: 'Sweet Basil',
+                taxonomicName: 'Ocimum basilicum',
+                image: null,
+                wateringFrequency: 12,
+                lastWatered: { month: 5, day: 9 },
+                safeForPets: true,
+                nativeCalifornia: false,
+                infoUrl: 'https://en.wikipedia.org/wiki/Basil',
+                fertilizeMonths: [4, 6],
+                fertilizerType: 'Fish emulsion or compost tea',
+                pruneMonths: [5, 6, 7],
+                nutritionalValue: 'High in vitamin K, manganese, and antioxidants. Negligible calories.',
+                notes: 'Pinch flower buds to keep leaves producing. Harvest from the top to encourage bushier growth.',
+                safetyNotes: '',
+                location: 'Patio pot, full morning sun'
+            },
+            {
+                id: 1003,
+                commonName: 'Rosemary',
+                taxonomicName: 'Salvia rosmarinus',
+                image: null,
+                wateringFrequency: 4,
+                lastWatered: { month: 5, day: 6 },
+                safeForPets: true,
+                nativeCalifornia: false,
+                infoUrl: 'https://en.wikipedia.org/wiki/Salvia_rosmarinus',
+                fertilizeMonths: [2, 8],
+                fertilizerType: 'Light compost or low-nitrogen organic',
+                pruneMonths: [3, 7],
+                nutritionalValue: 'Source of iron, calcium, and vitamin B6. Used in small culinary amounts.',
+                notes: 'Drought-tolerant Mediterranean herb. Attracts pollinators. Prefers well-drained soil.',
+                safetyNotes: '',
+                location: 'Side garden, full sun'
+            },
+            {
+                id: 1004,
+                commonName: 'Meyer Lemon',
+                taxonomicName: 'Citrus × meyeri',
+                image: null,
+                wateringFrequency: 6,
+                lastWatered: { month: 5, day: 7 },
+                safeForPets: true,
+                nativeCalifornia: false,
+                infoUrl: 'https://en.wikipedia.org/wiki/Meyer_lemon',
+                fertilizeMonths: [1, 4, 7],
+                fertilizerType: 'Citrus fertilizer (8-3-9 or similar)',
+                pruneMonths: [1],
+                nutritionalValue: 'High in vitamin C. Sweeter and less acidic than standard lemons.',
+                notes: 'Can bloom multiple times per year. Protect from frost. Yellow leaves often mean over-watering or nitrogen deficiency.',
+                safetyNotes: '',
+                location: 'Front yard, south-facing'
+            },
+            {
+                id: 1005,
+                commonName: 'California Poppy',
+                taxonomicName: 'Eschscholzia californica',
+                image: null,
+                wateringFrequency: 2,
+                lastWatered: { month: 5, day: 3 },
+                safeForPets: false,
+                nativeCalifornia: true,
+                infoUrl: 'https://en.wikipedia.org/wiki/Eschscholzia_californica',
+                fertilizeMonths: [],
+                fertilizerType: 'None — thrives in poor soil',
+                pruneMonths: [10],
+                nutritionalValue: 'Not consumed. Traditionally used in small amounts as a mild herbal sedative.',
+                notes: 'State flower of California. Self-seeds readily. Blooms close at night and on cloudy days.',
+                safetyNotes: 'Mildly toxic if eaten in large quantities. Contains alkaloids. Keep pets and children from chewing on it.',
+                location: 'Front border garden'
+            },
+            {
+                id: 1006,
+                commonName: 'English Lavender',
+                taxonomicName: 'Lavandula angustifolia',
+                image: null,
+                wateringFrequency: 4,
+                lastWatered: { month: 5, day: 5 },
+                safeForPets: true,
+                nativeCalifornia: false,
+                infoUrl: 'https://en.wikipedia.org/wiki/Lavandula_angustifolia',
+                fertilizeMonths: [2],
+                fertilizerType: 'Light compost (avoid heavy nitrogen)',
+                pruneMonths: [8],
+                nutritionalValue: 'Used in teas and culinary applications in small amounts. Source of antioxidants.',
+                notes: 'Attracts bees and butterflies. Deer-resistant. Prune after flowering for compact shape.',
+                safetyNotes: '',
+                location: 'Front walkway border'
+            }
+        ];
+
+        const GardenTrackerApp = () => {
+            const [plants, setPlants] = useState(() => {
+                const saved = localStorage.getItem('gardenPlants');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                    } catch (e) {}
+                }
+                return SEED_PLANTS;
+            });
+            const [showAddPlant, setShowAddPlant] = useState(false);
+            const [editingPlant, setEditingPlant] = useState(null);
+            const [currentView, setCurrentView] = useState('list');
+            const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+            const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+            const [searchQuery, setSearchQuery] = useState('');
+            const [showPoisonInfo, setShowPoisonInfo] = useState(null);
+            const [poisonControlNumber, setPoisonControlNumber] = useState(() => {
+                const saved = localStorage.getItem('poisonControlNumber');
+                return saved || '';
+            });
+            const [usdaHardinessZone, setUsdaHardinessZone] = useState(() => {
+                const saved = localStorage.getItem('usdaHardinessZone');
+                return saved || '';
+            });
+
+            const [newPlant, setNewPlant] = useState({
+                commonName: '',
+                taxonomicName: '',
+                image: null,
+                wateringFrequency: 4,
+                lastWatered: {
+                    month: new Date().getMonth() + 1,
+                    day: new Date().getDate()
+                },
+                safeForPets: false,
+                nativeCalifornia: false,
+                infoUrl: '',
+                fertilizeMonths: [],
+                fertilizerType: '',
+                pruneMonths: [],
+                nutritionalValue: '',
+                notes: '',
+                safetyNotes: '',
+                location: ''
+            });
+
+            useEffect(() => {
+                localStorage.setItem('gardenPlants', JSON.stringify(plants));
+            }, [plants]);
+
+            useEffect(() => {
+                localStorage.setItem('poisonControlNumber', poisonControlNumber);
+            }, [poisonControlNumber]);
+
+            useEffect(() => {
+                localStorage.setItem('usdaHardinessZone', usdaHardinessZone);
+            }, [usdaHardinessZone]);
+
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+            const getDaysInMonth = (month, year) => {
+                return new Date(year, month + 1, 0).getDate();
+            };
+
+            const handleImageCapture = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setNewPlant({...newPlant, image: reader.result});
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const calculateNextWatering = (lastWatered, frequency) => {
+                const daysInMonth = 30;
+                const daysBetweenWatering = Math.floor(daysInMonth / frequency);
+
+                const lastDate = new Date(currentYear, lastWatered.month - 1, lastWatered.day);
+                const nextDate = new Date(lastDate);
+                nextDate.setDate(nextDate.getDate() + daysBetweenWatering);
+
+                return nextDate;
+            };
+
+            const addPlant = () => {
+                if (newPlant.commonName || newPlant.taxonomicName) {
+                    setPlants([...plants, { ...newPlant, id: Date.now() }]);
+                    resetForm();
+                    setShowAddPlant(false);
+                }
+            };
+
+            const startEditPlant = (plant) => {
+                setEditingPlant(plant.id);
+                setNewPlant({...plant});
+                setShowAddPlant(false);
+            };
+
+            const updatePlant = () => {
+                if (newPlant.commonName || newPlant.taxonomicName) {
+                    setPlants(plants.map(p => p.id === editingPlant ? {...newPlant, id: editingPlant} : p));
+                    resetForm();
+                    setEditingPlant(null);
+                }
+            };
+
+            const cancelEdit = () => {
+                setEditingPlant(null);
+                resetForm();
+            };
+
+            const resetForm = () => {
+                setNewPlant({
+                    commonName: '',
+                    taxonomicName: '',
+                    image: null,
+                    wateringFrequency: 4,
+                    lastWatered: {
+                        month: new Date().getMonth() + 1,
+                        day: new Date().getDate()
+                    },
+                    safeForPets: false,
+                    nativeCalifornia: false,
+                    infoUrl: '',
+                    fertilizeMonths: [],
+                    fertilizerType: '',
+                    pruneMonths: [],
+                    nutritionalValue: '',
+                    notes: '',
+                    safetyNotes: '',
+                    location: ''
+                });
+            };
+
+            const deletePlant = (id) => {
+                if (confirm('Are you sure you want to delete this plant?')) {
+                    setPlants(plants.filter(p => p.id !== id));
+                }
+            };
+
+            const toggleMonth = (monthIndex, field) => {
+                const currentMonths = newPlant[field];
+                if (currentMonths.includes(monthIndex)) {
+                    setNewPlant({
+                        ...newPlant,
+                        [field]: currentMonths.filter(m => m !== monthIndex)
+                    });
+                } else {
+                    setNewPlant({
+                        ...newPlant,
+                        [field]: [...currentMonths, monthIndex].sort((a, b) => a - b)
+                    });
+                }
+            };
+
+            const filteredPlants = plants.filter(plant => {
+                if (!searchQuery.trim()) return true;
+                const query = searchQuery.toLowerCase();
+                return (
+                    (plant.commonName && plant.commonName.toLowerCase().includes(query)) ||
+                    (plant.taxonomicName && plant.taxonomicName.toLowerCase().includes(query)) ||
+                    (plant.location && plant.location.toLowerCase().includes(query)) ||
+                    (plant.notes && plant.notes.toLowerCase().includes(query))
+                );
+            });
+
+            const getCalendarTasks = () => {
+                const tasks = [];
+
+                plants.forEach(plant => {
+                    const nextWater = calculateNextWatering(plant.lastWatered, plant.wateringFrequency);
+                    if (nextWater.getMonth() === currentMonth && nextWater.getFullYear() === currentYear) {
+                        tasks.push({
+                            type: 'water',
+                            plant: plant.commonName || plant.taxonomicName,
+                            date: nextWater.getDate()
+                        });
+                    }
+
+                    if (plant.fertilizeMonths.includes(currentMonth)) {
+                        tasks.push({
+                            type: 'fertilize',
+                            plant: plant.commonName || plant.taxonomicName,
+                            fertilizer: plant.fertilizerType,
+                            month: true
+                        });
+                    }
+
+                    if (plant.pruneMonths.includes(currentMonth)) {
+                        tasks.push({
+                            type: 'prune',
+                            plant: plant.commonName || plant.taxonomicName,
+                            month: true
+                        });
+                    }
+                });
+
+                return tasks;
+            };
+
+            const renderCalendar = () => {
+                const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+                const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+                const tasks = getCalendarTasks();
+
+                const days = [];
+                for (let i = 0; i < firstDay; i++) {
+                    days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayTasks = tasks.filter(t => t.date === day);
+                    days.push(
+                        <div key={day} className="calendar-day">
+                            <div className="day-number">{day}</div>
+                            <div className="day-tasks">
+                                {dayTasks.map((task, idx) => (
+                                    <div key={idx} className={`task-dot ${task.type}`} title={`${task.type} ${task.plant}`}>
+                                        {task.type === 'water' && <Droplet size={12} />}
+                                        {task.type === 'fertilize' && <Leaf size={12} />}
+                                        {task.type === 'prune' && <Scissors size={12} />}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                }
+
+                return days;
+            };
+
+            const monthTasks = getCalendarTasks().filter(t => t.month);
+
+            return (
+                <div className="app-container">
+                    <style>{`
+                        * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
+
+                        body {
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            min-height: 100vh;
+                        }
+
+                        .app-container {
+                            max-width: 1200px;
+                            margin: 0 auto;
+                            padding: 1rem;
+                            min-height: 100vh;
+                        }
+
+                        .header {
+                            background: white;
+                            border-radius: 1rem;
+                            padding: 1.5rem;
+                            margin-bottom: 1.5rem;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        }
+
+                        .header h1 {
+                            color: #667eea;
+                            font-size: 1.75rem;
+                            margin-bottom: 1rem;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+
+                        .nav-tabs {
+                            display: flex;
+                            gap: 0.5rem;
+                            flex-wrap: wrap;
+                        }
+
+                        .tab-button {
+                            padding: 0.75rem 1.5rem;
+                            border: none;
+                            background: #f3f4f6;
+                            border-radius: 0.5rem;
+                            cursor: pointer;
+                            font-size: 0.95rem;
+                            font-weight: 500;
+                            transition: all 0.2s;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+
+                        .tab-button:hover {
+                            background: #e5e7eb;
+                        }
+
+                        .tab-button.active {
+                            background: #667eea;
+                            color: white;
+                        }
+
+                        .content-section {
+                            background: white;
+                            border-radius: 1rem;
+                            padding: 1.5rem;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        }
+
+                        .add-plant-button {
+                            width: 100%;
+                            padding: 1rem;
+                            background: #10b981;
+                            color: white;
+                            border: none;
+                            border-radius: 0.5rem;
+                            font-size: 1rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
+                            margin-bottom: 1.5rem;
+                            transition: background 0.2s;
+                        }
+
+                        .add-plant-button:hover {
+                            background: #059669;
+                        }
+
+                        .form-container {
+                            background: #f9fafb;
+                            border-radius: 0.75rem;
+                            padding: 1.5rem;
+                            margin-bottom: 1.5rem;
+                        }
+
+                        .form-group {
+                            margin-bottom: 1.25rem;
+                        }
+
+                        .form-label {
+                            display: block;
+                            font-weight: 600;
+                            margin-bottom: 0.5rem;
+                            color: #374151;
+                            font-size: 0.9rem;
+                        }
+
+                        .form-input {
+                            width: 100%;
+                            padding: 0.75rem;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            font-size: 1rem;
+                            transition: border-color 0.2s;
+                        }
+
+                        .form-input:focus {
+                            outline: none;
+                            border-color: #667eea;
+                        }
+
+                        .form-select {
+                            width: 100%;
+                            padding: 0.75rem;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            font-size: 1rem;
+                            background: white;
+                            cursor: pointer;
+                        }
+
+                        .form-select:focus {
+                            outline: none;
+                            border-color: #667eea;
+                        }
+
+                        .checkbox-group {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                            padding: 0.75rem;
+                            background: white;
+                            border-radius: 0.5rem;
+                            cursor: pointer;
+                            transition: background 0.2s;
+                        }
+
+                        .checkbox-group:hover {
+                            background: #f3f4f6;
+                        }
+
+                        .checkbox-group input {
+                            width: 1.25rem;
+                            height: 1.25rem;
+                            cursor: pointer;
+                        }
+
+                        .image-upload {
+                            display: flex;
+                            gap: 0.75rem;
+                            flex-wrap: wrap;
+                        }
+
+                        .image-button {
+                            flex: 1;
+                            min-width: 140px;
+                            padding: 1rem;
+                            border: 2px dashed #d1d5db;
+                            border-radius: 0.5rem;
+                            background: white;
+                            cursor: pointer;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            gap: 0.5rem;
+                            transition: all 0.2s;
+                            color: #6b7280;
+                        }
+
+                        .image-button:hover {
+                            border-color: #667eea;
+                            background: #f3f4f6;
+                            color: #667eea;
+                        }
+
+                        .image-button input {
+                            display: none;
+                        }
+
+                        .image-preview {
+                            width: 100%;
+                            max-width: 300px;
+                            height: 200px;
+                            object-fit: cover;
+                            border-radius: 0.5rem;
+                            margin-top: 0.75rem;
+                        }
+
+                        .month-selector {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                            gap: 0.5rem;
+                            margin-top: 0.5rem;
+                        }
+
+                        .month-chip {
+                            padding: 0.5rem;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            background: white;
+                            cursor: pointer;
+                            text-align: center;
+                            font-size: 0.85rem;
+                            transition: all 0.2s;
+                        }
+
+                        .month-chip:hover {
+                            border-color: #667eea;
+                        }
+
+                        .month-chip.selected {
+                            background: #667eea;
+                            color: white;
+                            border-color: #667eea;
+                        }
+
+                        .date-selectors {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 0.75rem;
+                        }
+
+                        .form-actions {
+                            display: flex;
+                            gap: 0.75rem;
+                            margin-top: 1.5rem;
+                        }
+
+                        .btn {
+                            flex: 1;
+                            padding: 0.875rem;
+                            border: none;
+                            border-radius: 0.5rem;
+                            font-size: 1rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
+                        }
+
+                        .btn-primary {
+                            background: #667eea;
+                            color: white;
+                        }
+
+                        .btn-primary:hover {
+                            background: #5568d3;
+                        }
+
+                        .btn-secondary {
+                            background: #e5e7eb;
+                            color: #374151;
+                        }
+
+                        .btn-secondary:hover {
+                            background: #d1d5db;
+                        }
+
+                        .plants-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                            gap: 1rem;
+                        }
+
+                        .plant-card {
+                            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+                            border-radius: 0.75rem;
+                            padding: 1.25rem;
+                            border: 2px solid #e5e7eb;
+                            transition: all 0.2s;
+                        }
+
+                        .plant-card:hover {
+                            border-color: #667eea;
+                            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+                        }
+
+                        .plant-header {
+                            display: flex;
+                            gap: 1rem;
+                            margin-bottom: 1rem;
+                        }
+
+                        .plant-image {
+                            width: 80px;
+                            height: 80px;
+                            border-radius: 0.5rem;
+                            object-fit: cover;
+                            background: #f3f4f6;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #9ca3af;
+                            flex-shrink: 0;
+                        }
+
+                        .plant-info {
+                            flex: 1;
+                            min-width: 0;
+                        }
+
+                        .plant-name {
+                            font-size: 1.1rem;
+                            font-weight: 700;
+                            color: #1f2937;
+                            margin-bottom: 0.25rem;
+                            word-wrap: break-word;
+                        }
+
+                        .plant-scientific {
+                            font-size: 0.85rem;
+                            color: #6b7280;
+                            font-style: italic;
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .plant-badges {
+                            display: flex;
+                            gap: 0.5rem;
+                            flex-wrap: wrap;
+                        }
+
+                        .badge {
+                            padding: 0.25rem 0.5rem;
+                            border-radius: 0.25rem;
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.25rem;
+                        }
+
+                        .badge-safe {
+                            background: #d1fae5;
+                            color: #065f46;
+                        }
+
+                        .badge-native {
+                            background: #dbeafe;
+                            color: #1e40af;
+                        }
+
+                        .plant-details {
+                            margin-top: 1rem;
+                            padding-top: 1rem;
+                            border-top: 1px solid #e5e7eb;
+                        }
+
+                        .detail-row {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                            margin-bottom: 0.5rem;
+                            font-size: 0.9rem;
+                            color: #4b5563;
+                        }
+
+                        .detail-row svg {
+                            color: #667eea;
+                            flex-shrink: 0;
+                        }
+
+                        .plant-actions {
+                            display: flex;
+                            gap: 0.5rem;
+                            margin-top: 1rem;
+                        }
+
+                        .icon-button {
+                            padding: 0.5rem;
+                            border: none;
+                            border-radius: 0.375rem;
+                            background: #f3f4f6;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+
+                        .icon-button:hover {
+                            background: #e5e7eb;
+                        }
+
+                        .icon-button:not(.delete):hover {
+                            background: #dbeafe;
+                            color: #667eea;
+                        }
+
+                        .icon-button.delete:hover {
+                            background: #fee2e2;
+                            color: #dc2626;
+                        }
+
+                        .calendar-container {
+                            margin-top: 1.5rem;
+                        }
+
+                        .calendar-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 1.5rem;
+                            padding: 1rem;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            border-radius: 0.75rem;
+                            color: white;
+                        }
+
+                        .calendar-header h2 {
+                            font-size: 1.25rem;
+                        }
+
+                        .calendar-nav {
+                            display: flex;
+                            gap: 0.5rem;
+                        }
+
+                        .nav-button {
+                            padding: 0.5rem;
+                            border: none;
+                            background: rgba(255,255,255,0.2);
+                            border-radius: 0.375rem;
+                            cursor: pointer;
+                            color: white;
+                            transition: background 0.2s;
+                            display: flex;
+                            align-items: center;
+                        }
+
+                        .nav-button:hover {
+                            background: rgba(255,255,255,0.3);
+                        }
+
+                        .calendar-grid {
+                            display: grid;
+                            grid-template-columns: repeat(7, 1fr);
+                            gap: 0.5rem;
+                            margin-bottom: 1.5rem;
+                        }
+
+                        .calendar-day-header {
+                            text-align: center;
+                            font-weight: 600;
+                            padding: 0.5rem;
+                            color: #6b7280;
+                            font-size: 0.85rem;
+                        }
+
+                        .calendar-day {
+                            aspect-ratio: 1;
+                            border: 1px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            padding: 0.5rem;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.25rem;
+                            background: white;
+                            transition: all 0.2s;
+                        }
+
+                        .calendar-day:hover {
+                            border-color: #667eea;
+                            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+                        }
+
+                        .calendar-day.empty {
+                            background: #f9fafb;
+                            border-color: transparent;
+                        }
+
+                        .day-number {
+                            font-size: 0.9rem;
+                            font-weight: 600;
+                            color: #374151;
+                        }
+
+                        .day-tasks {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 0.25rem;
+                        }
+
+                        .task-dot {
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+
+                        .task-dot.water {
+                            background: #dbeafe;
+                            color: #1e40af;
+                        }
+
+                        .task-dot.fertilize {
+                            background: #d1fae5;
+                            color: #065f46;
+                        }
+
+                        .task-dot.prune {
+                            background: #fef3c7;
+                            color: #92400e;
+                        }
+
+                        .month-tasks {
+                            background: #f9fafb;
+                            border-radius: 0.75rem;
+                            padding: 1.25rem;
+                        }
+
+                        .month-tasks h3 {
+                            font-size: 1.1rem;
+                            margin-bottom: 1rem;
+                            color: #374151;
+                        }
+
+                        .task-list {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.75rem;
+                        }
+
+                        .task-item {
+                            padding: 0.75rem;
+                            background: white;
+                            border-radius: 0.5rem;
+                            border-left: 4px solid #667eea;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                        }
+
+                        .task-item.fertilize {
+                            border-left-color: #10b981;
+                        }
+
+                        .task-item.prune {
+                            border-left-color: #f59e0b;
+                        }
+
+                        .task-icon {
+                            padding: 0.5rem;
+                            border-radius: 0.375rem;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+
+                        .task-icon.water {
+                            background: #dbeafe;
+                            color: #1e40af;
+                        }
+
+                        .task-icon.fertilize {
+                            background: #d1fae5;
+                            color: #065f46;
+                        }
+
+                        .task-icon.prune {
+                            background: #fef3c7;
+                            color: #92400e;
+                        }
+
+                        .task-details {
+                            flex: 1;
+                        }
+
+                        .task-plant {
+                            font-weight: 600;
+                            color: #1f2937;
+                        }
+
+                        .task-info {
+                            font-size: 0.85rem;
+                            color: #6b7280;
+                        }
+
+                        .empty-state {
+                            text-align: center;
+                            padding: 3rem 1rem;
+                            color: #6b7280;
+                        }
+
+                        .empty-state svg {
+                            margin: 0 auto 1rem;
+                            opacity: 0.5;
+                        }
+
+                        .search-container {
+                            margin-bottom: 1.5rem;
+                            position: relative;
+                        }
+
+                        .search-input {
+                            width: 100%;
+                            padding: 0.875rem 1rem 0.875rem 3rem;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            font-size: 1rem;
+                            transition: border-color 0.2s;
+                        }
+
+                        .search-input:focus {
+                            outline: none;
+                            border-color: #667eea;
+                        }
+
+                        .search-icon {
+                            position: absolute;
+                            left: 1rem;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            color: #9ca3af;
+                            pointer-events: none;
+                        }
+
+                        .form-textarea {
+                            width: 100%;
+                            padding: 0.75rem;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            font-size: 1rem;
+                            font-family: inherit;
+                            resize: vertical;
+                            min-height: 80px;
+                            transition: border-color 0.2s;
+                        }
+
+                        .form-textarea:focus {
+                            outline: none;
+                            border-color: #667eea;
+                        }
+
+                        .safety-info-container {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+
+                        .info-icon-button {
+                            padding: 0.25rem;
+                            background: transparent;
+                            border: none;
+                            cursor: pointer;
+                            color: #667eea;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            border-radius: 50%;
+                            transition: background 0.2s;
+                        }
+
+                        .info-icon-button:hover {
+                            background: #f3f4f6;
+                        }
+
+                        .modal-overlay {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: rgba(0, 0, 0, 0.5);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            z-index: 1000;
+                            padding: 1rem;
+                        }
+
+                        .modal-content {
+                            background: white;
+                            border-radius: 0.75rem;
+                            padding: 1.5rem;
+                            max-width: 500px;
+                            width: 100%;
+                            max-height: 80vh;
+                            overflow-y: auto;
+                        }
+
+                        .modal-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 1rem;
+                        }
+
+                        .modal-header h3 {
+                            color: #1f2937;
+                            font-size: 1.25rem;
+                        }
+
+                        .modal-close {
+                            padding: 0.5rem;
+                            background: transparent;
+                            border: none;
+                            cursor: pointer;
+                            border-radius: 0.375rem;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            transition: background 0.2s;
+                        }
+
+                        .modal-close:hover {
+                            background: #f3f4f6;
+                        }
+
+                        .poison-control-section {
+                            background: #fef3c7;
+                            border-left: 4px solid #f59e0b;
+                            padding: 1rem;
+                            border-radius: 0.5rem;
+                            margin-bottom: 1rem;
+                        }
+
+                        .poison-control-section h4 {
+                            color: #92400e;
+                            margin-bottom: 0.5rem;
+                            font-size: 1rem;
+                        }
+
+                        .poison-control-number {
+                            font-size: 1.5rem;
+                            font-weight: 700;
+                            color: #92400e;
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .plant-info-section {
+                            margin-bottom: 1rem;
+                        }
+
+                        .plant-info-section h4 {
+                            color: #374151;
+                            margin-bottom: 0.5rem;
+                            font-size: 0.95rem;
+                            font-weight: 600;
+                        }
+
+                        .plant-info-section p {
+                            color: #6b7280;
+                            font-size: 0.9rem;
+                            line-height: 1.5;
+                        }
+
+                        .poison-control-input-section {
+                            background: #fef3c7;
+                            border-radius: 0.75rem;
+                            padding: 1.25rem;
+                            margin-bottom: 1.25rem;
+                        }
+
+                        .poison-control-input-section h4 {
+                            color: #92400e;
+                            margin-bottom: 0.75rem;
+                            font-size: 1rem;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+
+                        .poison-control-input-section p {
+                            color: #78350f;
+                            font-size: 0.85rem;
+                            margin-bottom: 0.75rem;
+                        }
+
+                        .usda-zone-section {
+                            background: #dbeafe;
+                            border-radius: 0.75rem;
+                            padding: 1.25rem;
+                            margin-bottom: 1.25rem;
+                        }
+
+                        .usda-zone-section h4 {
+                            color: #1e40af;
+                            margin-bottom: 0.75rem;
+                            font-size: 1rem;
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+
+                        .usda-zone-section p {
+                            color: #1e3a8a;
+                            font-size: 0.85rem;
+                            margin-bottom: 0.75rem;
+                        }
+
+                        .info-label {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                        }
+
+                        @media (max-width: 768px) {
+                            .app-container {
+                                padding: 0.75rem;
+                            }
+
+                            .header h1 {
+                                font-size: 1.5rem;
+                            }
+
+                            .nav-tabs {
+                                width: 100%;
+                            }
+
+                            .tab-button {
+                                flex: 1;
+                                justify-content: center;
+                                padding: 0.625rem 1rem;
+                                font-size: 0.875rem;
+                            }
+
+                            .plants-grid {
+                                grid-template-columns: 1fr;
+                            }
+
+                            .calendar-grid {
+                                gap: 0.25rem;
+                            }
+
+                            .calendar-day {
+                                padding: 0.25rem;
+                            }
+
+                            .day-number {
+                                font-size: 0.8rem;
+                            }
+
+                            .task-dot {
+                                width: 20px;
+                                height: 20px;
+                            }
+
+                            .task-dot svg {
+                                width: 10px;
+                                height: 10px;
+                            }
+
+                            .date-selectors {
+                                grid-template-columns: 1fr;
+                            }
+
+                            .form-actions {
+                                flex-direction: column;
+                            }
+
+                            .image-upload {
+                                flex-direction: column;
+                            }
+
+                            .image-button {
+                                min-width: 100%;
+                            }
+                        }
+
+                        @media (max-width: 480px) {
+                            .month-selector {
+                                grid-template-columns: repeat(3, 1fr);
+                            }
+
+                            .calendar-day-header {
+                                font-size: 0.75rem;
+                                padding: 0.25rem;
+                            }
+                        }
+                    `}</style>
+
+                    <div className="header">
+                        <h1>
+                            <Leaf size={32} />
+                            My Garden Tracker
+                        </h1>
+
+                        {currentView === 'list' && (
+                            <>
+                                <div className="usda-zone-section">
+                                    <h4>
+                                        <Thermometer size={18} />
+                                        USDA Hardiness Zone
+                                    </h4>
+                                    <p>Enter your USDA hardiness zone to help track which plants thrive in your area</p>
+                                    <input
+                                        type="text"
+                                        className="form-input"
+                                        value={usdaHardinessZone}
+                                        onChange={(e) => setUsdaHardinessZone(e.target.value)}
+                                        placeholder="e.g., 9b, 10a, 7a"
+                                    />
+                                </div>
+
+                                <div className="poison-control-input-section">
+                                    <h4>
+                                        <AlertCircle size={18} />
+                                        Poison Control Center
+                                    </h4>
+                                    <p>Save your local poison control number for quick access in case of emergency</p>
+                                    <input
+                                        type="tel"
+                                        className="form-input"
+                                        value={poisonControlNumber}
+                                        onChange={(e) => setPoisonControlNumber(e.target.value)}
+                                        placeholder="e.g., 1-800-222-1222"
+                                    />
+                                </div>
+                            </>
+                        )}
+
+                        <div className="nav-tabs">
+                            <button
+                                className={`tab-button ${currentView === 'list' ? 'active' : ''}`}
+                                onClick={() => setCurrentView('list')}
+                            >
+                                <Leaf size={18} />
+                                My Plants
+                            </button>
+                            <button
+                                className={`tab-button ${currentView === 'calendar' ? 'active' : ''}`}
+                                onClick={() => setCurrentView('calendar')}
+                            >
+                                <Calendar size={18} />
+                                Care Calendar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="content-section">
+                        {currentView === 'list' && (
+                            <>
+                                {!showAddPlant && !editingPlant && (
+                                    <>
+                                        <button className="add-plant-button" onClick={() => setShowAddPlant(true)}>
+                                            <Plus size={20} />
+                                            Add New Plant
+                                        </button>
+
+                                        {plants.length > 0 && (
+                                            <div className="search-container">
+                                                <Search size={20} className="search-icon" />
+                                                <input
+                                                    type="text"
+                                                    className="search-input"
+                                                    placeholder="Search plants by name, location, or notes..."
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                />
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {(showAddPlant || editingPlant) && (
+                                    <div className="form-container">
+                                        <h2 style={{ marginBottom: '1rem', color: '#374151' }}>
+                                            {editingPlant ? 'Edit Plant' : 'Add New Plant'}
+                                        </h2>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Common Name</label>
+                                            <input
+                                                type="text"
+                                                className="form-input"
+                                                value={newPlant.commonName}
+                                                onChange={(e) => setNewPlant({...newPlant, commonName: e.target.value})}
+                                                placeholder="e.g., Tomato, Rose, Basil"
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Taxonomic Name</label>
+                                            <input
+                                                type="text"
+                                                className="form-input"
+                                                value={newPlant.taxonomicName}
+                                                onChange={(e) => setNewPlant({...newPlant, taxonomicName: e.target.value})}
+                                                placeholder="e.g., Solanum lycopersicum"
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Plant Photo</label>
+                                            <div className="image-upload">
+                                                <label className="image-button">
+                                                    <Camera size={24} />
+                                                    <span>Take Photo</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        capture="environment"
+                                                        onChange={handleImageCapture}
+                                                    />
+                                                </label>
+                                                <label className="image-button">
+                                                    <Upload size={24} />
+                                                    <span>Upload Photo</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleImageCapture}
+                                                    />
+                                                </label>
+                                            </div>
+                                            {newPlant.image && (
+                                                <img src={newPlant.image} alt="Preview" className="image-preview" />
+                                            )}
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Monthly Watering Frequency</label>
+                                            <select
+                                                className="form-select"
+                                                value={newPlant.wateringFrequency}
+                                                onChange={(e) => setNewPlant({...newPlant, wateringFrequency: parseInt(e.target.value)})}
+                                            >
+                                                {[1,2,3,4,5,6,7,8,10,12,15,20,30].map(freq => (
+                                                    <option key={freq} value={freq}>{freq} times per month</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Last Watered</label>
+                                            <div className="date-selectors">
+                                                <select
+                                                    className="form-select"
+                                                    value={newPlant.lastWatered.month}
+                                                    onChange={(e) => setNewPlant({
+                                                        ...newPlant,
+                                                        lastWatered: {...newPlant.lastWatered, month: parseInt(e.target.value)}
+                                                    })}
+                                                >
+                                                    {months.map((month, idx) => (
+                                                        <option key={idx} value={idx + 1}>{month}</option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    className="form-select"
+                                                    value={newPlant.lastWatered.day}
+                                                    onChange={(e) => setNewPlant({
+                                                        ...newPlant,
+                                                        lastWatered: {...newPlant.lastWatered, day: parseInt(e.target.value)}
+                                                    })}
+                                                >
+                                                    {Array.from({length: 31}, (_, i) => i + 1).map(day => (
+                                                        <option key={day} value={day}>{day}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Safety & Origin</label>
+                                            <div className="checkbox-group" onClick={() => setNewPlant({...newPlant, safeForPets: !newPlant.safeForPets})}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={newPlant.safeForPets}
+                                                    onChange={() => {}}
+                                                />
+                                                <div className="safety-info-container">
+                                                    <span>Safe for children and pets</span>
+                                                    {poisonControlNumber && (
+                                                        <button
+                                                            className="info-icon-button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setShowPoisonInfo('form');
+                                                            }}
+                                                            type="button"
+                                                        >
+                                                            <Info size={16} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="checkbox-group" onClick={() => setNewPlant({...newPlant, nativeCalifornia: !newPlant.nativeCalifornia})}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={newPlant.nativeCalifornia}
+                                                    onChange={() => {}}
+                                                />
+                                                <span>Native California plant</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">
+                                                Safety Notes (e.g., poisonous effects and what to do)
+                                            </label>
+                                            <textarea
+                                                className="form-textarea"
+                                                value={newPlant.safetyNotes}
+                                                onChange={(e) => setNewPlant({...newPlant, safetyNotes: e.target.value})}
+                                                placeholder="If poisonous, describe effects and first aid steps..."
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Plant Location in Yard</label>
+                                            <input
+                                                type="text"
+                                                className="form-input"
+                                                value={newPlant.location}
+                                                onChange={(e) => setNewPlant({...newPlant, location: e.target.value})}
+                                                placeholder="e.g., Front yard near mailbox, Back patio, Side garden"
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Nutritional Value</label>
+                                            <textarea
+                                                className="form-textarea"
+                                                value={newPlant.nutritionalValue}
+                                                onChange={(e) => setNewPlant({...newPlant, nutritionalValue: e.target.value})}
+                                                placeholder="Copy and paste nutritional information here..."
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Notes</label>
+                                            <textarea
+                                                className="form-textarea"
+                                                value={newPlant.notes}
+                                                onChange={(e) => setNewPlant({...newPlant, notes: e.target.value})}
+                                                placeholder="General notes about this plant..."
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Information URL</label>
+                                            <input
+                                                type="url"
+                                                className="form-input"
+                                                value={newPlant.infoUrl}
+                                                onChange={(e) => setNewPlant({...newPlant, infoUrl: e.target.value})}
+                                                placeholder="https://..."
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Fertilizing Schedule (Select Months)</label>
+                                            <div className="month-selector">
+                                                {months.map((month, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`month-chip ${newPlant.fertilizeMonths.includes(idx) ? 'selected' : ''}`}
+                                                        onClick={() => toggleMonth(idx, 'fertilizeMonths')}
+                                                    >
+                                                        {month.substring(0, 3)}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Fertilizer Type</label>
+                                            <input
+                                                type="text"
+                                                className="form-input"
+                                                value={newPlant.fertilizerType}
+                                                onChange={(e) => setNewPlant({...newPlant, fertilizerType: e.target.value})}
+                                                placeholder="e.g., 10-10-10, Organic compost"
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label className="form-label">Pruning Schedule (Select Months)</label>
+                                            <div className="month-selector">
+                                                {months.map((month, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`month-chip ${newPlant.pruneMonths.includes(idx) ? 'selected' : ''}`}
+                                                        onClick={() => toggleMonth(idx, 'pruneMonths')}
+                                                    >
+                                                        {month.substring(0, 3)}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="form-actions">
+                                            {editingPlant ? (
+                                                <>
+                                                    <button className="btn btn-primary" onClick={updatePlant}>
+                                                        <Check size={18} />
+                                                        Update Plant
+                                                    </button>
+                                                    <button className="btn btn-secondary" onClick={cancelEdit}>
+                                                        <X size={18} />
+                                                        Cancel
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button className="btn btn-primary" onClick={addPlant}>
+                                                        <Check size={18} />
+                                                        Add Plant
+                                                    </button>
+                                                    <button className="btn btn-secondary" onClick={() => {
+                                                        setShowAddPlant(false);
+                                                        resetForm();
+                                                    }}>
+                                                        <X size={18} />
+                                                        Cancel
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {plants.length === 0 && !showAddPlant && !editingPlant ? (
+                                    <div className="empty-state">
+                                        <Leaf size={64} />
+                                        <h3>No plants yet</h3>
+                                        <p>Add your first plant to start tracking its care</p>
+                                    </div>
+                                ) : filteredPlants.length === 0 && !showAddPlant && !editingPlant ? (
+                                    <div className="empty-state">
+                                        <Search size={64} />
+                                        <h3>No plants found</h3>
+                                        <p>Try a different search term</p>
+                                    </div>
+                                ) : (
+                                    <div className="plants-grid">
+                                        {filteredPlants.map(plant => {
+                                            const nextWater = calculateNextWatering(plant.lastWatered, plant.wateringFrequency);
+                                            return (
+                                                <div key={plant.id} className="plant-card">
+                                                    <div className="plant-header">
+                                                        {plant.image ? (
+                                                            <img src={plant.image} alt={plant.commonName} className="plant-image" />
+                                                        ) : (
+                                                            <div className="plant-image">
+                                                                <Leaf size={32} />
+                                                            </div>
+                                                        )}
+                                                        <div className="plant-info">
+                                                            <div className="plant-name">{plant.commonName || 'Unnamed Plant'}</div>
+                                                            {plant.taxonomicName && (
+                                                                <div className="plant-scientific">{plant.taxonomicName}</div>
+                                                            )}
+                                                            <div className="plant-badges">
+                                                                {plant.safeForPets && (
+                                                                    <span className="badge badge-safe">
+                                                                        <Check size={12} />
+                                                                        Safe for pets
+                                                                    </span>
+                                                                )}
+                                                                {plant.nativeCalifornia && (
+                                                                    <span className="badge badge-native">
+                                                                        Native CA
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="plant-details">
+                                                        {plant.location && (
+                                                            <div className="detail-row">
+                                                                <MapPin size={16} />
+                                                                <span>{plant.location}</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="detail-row">
+                                                            <Droplet size={16} />
+                                                            <span>Water {plant.wateringFrequency}x/month • Next: {nextWater.toLocaleDateString()}</span>
+                                                        </div>
+                                                        {plant.fertilizeMonths && plant.fertilizeMonths.length > 0 && (
+                                                            <div className="detail-row">
+                                                                <Leaf size={16} />
+                                                                <span>Fertilize: {plant.fertilizeMonths.map(m => months[m].substring(0, 3)).join(', ')}</span>
+                                                            </div>
+                                                        )}
+                                                        {plant.pruneMonths && plant.pruneMonths.length > 0 && (
+                                                            <div className="detail-row">
+                                                                <Scissors size={16} />
+                                                                <span>Prune: {plant.pruneMonths.map(m => months[m].substring(0, 3)).join(', ')}</span>
+                                                            </div>
+                                                        )}
+                                                        {plant.safetyNotes && (
+                                                            <div className="detail-row" style={{alignItems: 'flex-start'}}>
+                                                                <AlertCircle size={16} style={{marginTop: '2px', color: '#f59e0b'}} />
+                                                                <div>
+                                                                    <strong style={{color: '#92400e'}}>Safety:</strong>{' '}
+                                                                    <span style={{color: '#78350f'}}>{plant.safetyNotes}</span>
+                                                                    {poisonControlNumber && (
+                                                                        <button
+                                                                            className="info-icon-button"
+                                                                            onClick={() => setShowPoisonInfo(plant.id)}
+                                                                            style={{marginLeft: '0.25rem'}}
+                                                                        >
+                                                                            <Info size={14} />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {plant.notes && (
+                                                            <div className="detail-row" style={{alignItems: 'flex-start'}}>
+                                                                <Info size={16} style={{marginTop: '2px'}} />
+                                                                <span>{plant.notes}</span>
+                                                            </div>
+                                                        )}
+                                                        {plant.infoUrl && (
+                                                            <div className="detail-row">
+                                                                <ExternalLink size={16} />
+                                                                <a href={plant.infoUrl} target="_blank" rel="noopener noreferrer" style={{color: '#667eea', textDecoration: 'none'}}>
+                                                                    More info
+                                                                </a>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="plant-actions">
+                                                        <button className="icon-button" onClick={() => startEditPlant(plant)} title="Edit plant">
+                                                            <Edit2 size={18} />
+                                                        </button>
+                                                        <button className="icon-button delete" onClick={() => deletePlant(plant.id)} title="Delete plant">
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {currentView === 'calendar' && (
+                            <div className="calendar-container">
+                                <div className="calendar-header">
+                                    <h2>{months[currentMonth]} {currentYear}</h2>
+                                    <div className="calendar-nav">
+                                        <button
+                                            className="nav-button"
+                                            onClick={() => {
+                                                if (currentMonth === 0) {
+                                                    setCurrentMonth(11);
+                                                    setCurrentYear(currentYear - 1);
+                                                } else {
+                                                    setCurrentMonth(currentMonth - 1);
+                                                }
+                                            }}
+                                        >
+                                            <ChevronLeft size={20} />
+                                        </button>
+                                        <button
+                                            className="nav-button"
+                                            onClick={() => {
+                                                if (currentMonth === 11) {
+                                                    setCurrentMonth(0);
+                                                    setCurrentYear(currentYear + 1);
+                                                } else {
+                                                    setCurrentMonth(currentMonth + 1);
+                                                }
+                                            }}
+                                        >
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="calendar-grid">
+                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                        <div key={day} className="calendar-day-header">{day}</div>
+                                    ))}
+                                    {renderCalendar()}
+                                </div>
+
+                                {monthTasks.length > 0 && (
+                                    <div className="month-tasks">
+                                        <h3>Tasks for {months[currentMonth]}</h3>
+                                        <div className="task-list">
+                                            {monthTasks.map((task, idx) => (
+                                                <div key={idx} className={`task-item ${task.type}`}>
+                                                    <div className={`task-icon ${task.type}`}>
+                                                        {task.type === 'fertilize' && <Leaf size={20} />}
+                                                        {task.type === 'prune' && <Scissors size={20} />}
+                                                    </div>
+                                                    <div className="task-details">
+                                                        <div className="task-plant">{task.plant}</div>
+                                                        <div className="task-info">
+                                                            {task.type === 'fertilize' && `Fertilize ${task.fertilizer ? `with ${task.fertilizer}` : ''}`}
+                                                            {task.type === 'prune' && 'Prune this month'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {plants.length === 0 && (
+                                    <div className="empty-state">
+                                        <Calendar size={64} />
+                                        <h3>No plants to schedule</h3>
+                                        <p>Add some plants to see your care calendar</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {showPoisonInfo && (
+                        <div className="modal-overlay" onClick={() => setShowPoisonInfo(null)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h3>Emergency Information</h3>
+                                    <button className="modal-close" onClick={() => setShowPoisonInfo(null)}>
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <div className="poison-control-section">
+                                    <h4>Poison Control Center</h4>
+                                    <div className="poison-control-number">{poisonControlNumber}</div>
+                                    <p style={{fontSize: '0.85rem', color: '#78350f', marginTop: '0.5rem'}}>
+                                        Call immediately if you suspect poisoning. Have plant information ready.
+                                    </p>
+                                </div>
+
+                                {showPoisonInfo !== 'form' && (
+                                    <>
+                                        {(() => {
+                                            const plant = plants.find(p => p.id === showPoisonInfo);
+                                            if (!plant) return null;
+
+                                            return (
+                                                <>
+                                                    <div className="plant-info-section">
+                                                        <h4>Plant Information</h4>
+                                                        <p><strong>Common Name:</strong> {plant.commonName || 'N/A'}</p>
+                                                        <p><strong>Scientific Name:</strong> {plant.taxonomicName || 'N/A'}</p>
+                                                        {plant.location && <p><strong>Location:</strong> {plant.location}</p>}
+                                                    </div>
+
+                                                    {plant.safetyNotes && (
+                                                        <div className="plant-info-section">
+                                                            <h4>Safety Information</h4>
+                                                            <p>{plant.safetyNotes}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {plant.nutritionalValue && (
+                                                        <div className="plant-info-section">
+                                                            <h4>Nutritional Value</h4>
+                                                            <p style={{whiteSpace: 'pre-wrap'}}>{plant.nutritionalValue}</p>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<GardenTrackerApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
